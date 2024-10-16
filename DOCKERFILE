@@ -1,0 +1,26 @@
+# Use Node.js as a base image
+FROM node:latest-alpine
+
+# set the working directory in the container 
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./ 
+
+# Install dependencies
+RUN npm install 
+
+# Copy all files from the current directory to working directory in the container
+COPY . .
+
+# Build the Node js application
+RUN npm run build
+
+# Exposse the port on which Node js runs on 
+EXPOSE 3000
+
+# set enviorement variables for productions
+ENV NODE_ENV=production 
+
+# Start the Node js app
+CMD ["npm","start"]
