@@ -1,8 +1,10 @@
 import { connection } from "websocket";
+import { OutgoingMessage } from "./messages/outgoingMessages";
 
 interface User {
   name: string;
   id: string;
+  conn: connection;
 }
 
 interface Room {
@@ -24,6 +26,10 @@ export class UserManager {
     this.rooms.get(roomId)?.users.push({
       id: userId,
       name,
+      conn: socket,
+    });
+    socket.on("close", (reasonCode, description) => {
+      this.removeUser(roomId, userId);
     });
   }
 
@@ -32,5 +38,32 @@ export class UserManager {
     if (users) {
       users.filter(({ id }) => id !== userId);
     }
+  }
+
+  getUser(roomId: string, userId: string): User | null {
+    const user = this.rooms.get(roomId)?.users.find(({ id }) => id === userId);
+    return user ?? null;
+  }
+
+  broadcast(roomId: string, userId: string, message: OutgoingMessage) {
+    const user = this.getUser(roomId, userId);
+    if (!user) {
+      console.error("User not found");
+      return;
+    }
+
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      console.error("Room not Found");
+      return;
+    }
+
+    room.users.forEach(({ conn, id }) => {
+      if (id === userId) {
+        return;
+      }
+      console.log("Outgoing Message " + JSON.stringify(message));
+      conn.sendUTF(JSON.stringify(message));
+    });
   }
 }

@@ -18,5 +18,5 @@ export type OutgoingMessage =
   }
   | {
     type: SupportedMessage.UpdateChat;
-    payload: MessagePayload;
+    payload: Partial<MessagePayload>;
   };
